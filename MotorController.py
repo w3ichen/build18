@@ -6,6 +6,7 @@ import pigpio
 MOTOR1 = 12
 MOTOR2 = 13
 MOTOR3 = 18
+MOTORS = [MOTOR1, MOTOR2, MOTOR3]
 
 class MotorController:
     """
@@ -56,8 +57,19 @@ class MotorController:
         print(f"Reverse: pin={motor_pin}, pwm={pwm}")
 
     def stop_motor(self, motor_pin):
+        """
+        Stop a motor
+        """
         self.pi.set_PWM_dutycycle(motor_pin, self.PWM_NEUTRAL)
         print(f"Stopped: pin={motor_pin}")
+
+    def drive_up(self, speed):
+        """
+        Drive all motors up at a certain speed
+        """
+        for motor_pin in MOTORS:
+            self.pi.set_PWM_dutycycle(motor_pin, speed)
+        print(f"Driving all motors up at speed={speed}")
 
 
 if __name__ == "__main__":

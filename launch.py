@@ -7,5 +7,8 @@ Need to launch
 3. ./launch.py
 """
 
+from VehicleController import VehicleController
+
 if __name__ == "__main__":
-    print("HELLO")
+    vehicle = VehicleController(R=77.5)
+    vehicle.run()
