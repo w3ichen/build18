@@ -16,7 +16,6 @@ class VehicleController:
         Tx = np.array([R, -R/2, -R/2])
         Ty = np.array([0, R * np.sqrt(3) / 2, -R * np.sqrt(3) / 2])
         self.M = np.array([Tx, Ty])
-        print("self.M",self.M)
         self.Minv = np.linalg.pinv(self.M)
         self.motor_pins = [MOTOR1, MOTOR2, MOTOR3]
         self.max_torque = 1
@@ -55,8 +54,9 @@ class VehicleController:
             # Read joy
             up, x, y = self.read_joystick()
             if up:
-                self.motor_controller.drive_up(40)
+                self.motor_controller.drive_up(100)
             else:
-                self.control_motors(x,y)
+                self.motor_controller.drive_up(0)
+                # self.control_motors(x,y)
             
             time.sleep(0.1)

@@ -45,7 +45,7 @@ class MotorController:
         # Map speed (0-100) to 75-100
         pwm = 75 + (speed / 100) * 25
         self.pi.set_PWM_dutycycle(motor_pin, pwm)
-        print(f"Forward: pin={motor_pin}, pwm={pwm}")
+        print(f"Forward: pin={motor_pin}, speed={speed}, pwm={pwm}")
     
     def drive_reverse(self, motor_pin, speed):
         """
@@ -54,7 +54,7 @@ class MotorController:
         """
         pwm = 75 - (speed / 100) * 25
         self.pi.set_PWM_dutycycle(motor_pin, pwm)
-        print(f"Reverse: pin={motor_pin}, pwm={pwm}")
+        print(f"Reverse: pin={motor_pin}, speed={speed}, pwm={pwm}")
 
     def stop_motor(self, motor_pin):
         """
@@ -68,12 +68,13 @@ class MotorController:
         Drive all motors up at a certain speed
         """
         for motor_pin in MOTORS:
-            self.pi.set_PWM_dutycycle(motor_pin, speed)
+            self.drive_forward(motor_pin, speed)
+        
         print(f"Driving all motors up at speed={speed}")
 
 
 if __name__ == "__main__":
     controller = MotorController()
-    controller.drive_forward(MOTOR1, 10)
+    controller.drive_forward(MOTOR1, 50)
     time.sleep(3)
     controller.drive_forward(MOTOR1, 0)
