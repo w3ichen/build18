@@ -2,7 +2,7 @@
 
 """
 Need to launch
-1. sudo /usr/bin/pigpiod
+1. sudo pigpiod
 2. source build18_env/bin/activate (optional)
 3. ./launch.py
 """

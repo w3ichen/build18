@@ -44,18 +44,21 @@ class VehicleController:
                 self.motor_controller.drive_reverse(self.motor_pins[i], command)
     
     def read_joystick(self):
-        up = self.joystick.read_joy_btn()
+        btn = self.joystick.read_joy_btn()
         x = self.joystick.read_joy_x()
         y = self.joystick.read_joy_y()
-        return up, x, y
+        return btn, x, y
 
     def run(self):
         print("Running motor, CTRL+C to stop!")
         while True:
             # Read joy
-            up, x, y = self.read_joystick()
-                
-            if x > 60:
+            btn, x, y = self.read_joystick()
+            
+            if btn:
+                print("STOP")
+                self.motor_controller.stop_all_motors()
+            elif x > 60:
                 # All up
                 if self.verbose: print("Driving up")
                 speed = ((x - 50)/50) * 100
