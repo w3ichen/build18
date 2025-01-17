@@ -1,13 +1,14 @@
 import numpy as np
 from MotorController import MotorController, MOTOR1, MOTOR2, MOTOR3
 from Joystick import Joystick
-
+import sys
 import time
 
 class VehicleController:
-    def __init__(self, R):
+    def __init__(self, R, verbose=False):
         self.R = R
-        self.motor_controller = MotorController()
+        self.verbose = verbose
+        self.motor_controller = MotorController(verbose=verbose)
     
         # Thrust 1, Thrust 2, Thrust 3
         # Front, back left, back right
@@ -53,10 +54,37 @@ class VehicleController:
         while True:
             # Read joy
             up, x, y = self.read_joystick()
-            if up:
-                self.motor_controller.drive_up(100)
+                
+            if x > 60:
+                # All up
+                if self.verbose: print("Driving up")
+                speed = ((x - 50)/50) * 100
+                self.motor_controller.drive_up(speed)
+            elif x < 40:
+                # All down
+                if self.verbose: print("Driving down")
+                speed = ((50 - x)/50) * 100
+                self.motor_controller.drive_down(speed)
+            elif y > 60:
+                # Turn left
+                if self.verbose: print("Turning left")
+                speed = ((50 - y)/50) * 100
+                self.motor_controller.stop_motor(MOTOR1)
+                self.motor_controller.drive_forward(MOTOR3, speed)
+            elif y < 40:
+                # Turn right
+                if self.verbose: print("Turning right")
+                speed = ((y - 50)/50) * 100
+                self.motor_controller.drive_forward(MOTOR1, speed)
+                self.motor_controller.stop_motor(MOTOR3)
             else:
-                self.motor_controller.drive_up(0)
-                # self.control_motors(x,y)
-            
+                # At rest
+                self.motor_controller.stop_all_motors()
+
             time.sleep(0.1)
+            if not self.verbose: 
+                # If not verbose, print dot for quality of life
+                print(".", end="")
+                sys.stdout.flush()
+                
+

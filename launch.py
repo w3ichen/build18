@@ -10,5 +10,5 @@ Need to launch
 from VehicleController import VehicleController
 
 if __name__ == "__main__":
-    vehicle = VehicleController(R=77.5)
+    vehicle = VehicleController(R=77.5, verbose=False)
     vehicle.run()

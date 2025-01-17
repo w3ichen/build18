@@ -17,8 +17,9 @@ class MotorController:
     Forward: 50-75
     Backward: 75-100
     """
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.pi = pigpio.pi()  # create pigpio object
+        self.verbose = verbose
 
         # PWM CONSTANTS
         self.PWM_FREQUENCY = 50  # define the PWM frequency in Hz
@@ -35,7 +36,7 @@ class MotorController:
         self.pi.set_PWM_frequency(motor_pin, self.PWM_FREQUENCY)  # set PWM frequency
         self.pi.set_PWM_range(motor_pin, self.PWM_range)  # set range 1000
         self.pi.set_PWM_dutycycle(motor_pin, self.PWM_NEUTRAL)  # set PWM duty cycle to neutral
-        print(f"Initialized pin {motor_pin}")
+        if self.verbose: print(f"Initialized pin {motor_pin}")
 
     def drive_forward(self, motor_pin, speed):
         """
@@ -45,7 +46,7 @@ class MotorController:
         # Map speed (0-100) to 75-100
         pwm = 75 + (speed / 100) * 25
         self.pi.set_PWM_dutycycle(motor_pin, pwm)
-        print(f"Forward: pin={motor_pin}, speed={speed}, pwm={pwm}")
+        if self.verbose: print(f"Forward: pin={motor_pin}, speed={speed}, pwm={pwm}")
     
     def drive_reverse(self, motor_pin, speed):
         """
@@ -54,14 +55,22 @@ class MotorController:
         """
         pwm = 75 - (speed / 100) * 25
         self.pi.set_PWM_dutycycle(motor_pin, pwm)
-        print(f"Reverse: pin={motor_pin}, speed={speed}, pwm={pwm}")
+        if self.verbose: print(f"Reverse: pin={motor_pin}, speed={speed}, pwm={pwm}")
 
     def stop_motor(self, motor_pin):
         """
         Stop a motor
         """
         self.pi.set_PWM_dutycycle(motor_pin, self.PWM_NEUTRAL)
-        print(f"Stopped: pin={motor_pin}")
+        if self.verbose: print(f"Stopped: pin={motor_pin}")
+    
+    def stop_all_motors(self):
+        """
+        Stop all motors
+        """
+        for motor_pin in MOTORS:
+            self.stop_motor(motor_pin)
+        if self.verbose: print(f"Stopped all motors")
 
     def drive_up(self, speed):
         """
@@ -69,8 +78,15 @@ class MotorController:
         """
         for motor_pin in MOTORS:
             self.drive_forward(motor_pin, speed)
-        
-        print(f"Driving all motors up at speed={speed}")
+        if self.verbose: print(f"Driving all motors up at speed={speed}")
+
+    def drive_down(self, speed):
+        """
+        Drive all motors down at a certain speed
+        """
+        for motor_pin in MOTORS:
+            self.drive_reverse(motor_pin, speed)
+        if self.verbose: print(f"Driving all motors down at speed={speed}")
 
 
 if __name__ == "__main__":
