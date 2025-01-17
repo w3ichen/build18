@@ -1,5 +1,5 @@
 import numpy as np
-from MotorController import MotorController, MOTOR1, MOTOR2, MOTOR3
+from MotorController import MAX_SPEED_1_MOTOR, MAX_SPEED_2_MOTORS, MotorController, MOTOR1, MOTOR2, MOTOR3
 from Joystick import Joystick
 import sys
 import time
@@ -62,24 +62,28 @@ class VehicleController:
                 # All up
                 if self.verbose: print("Driving up")
                 speed = ((x - 50)/50) * 100
+                speed = min(speed, MAX_SPEED_2_MOTORS)
                 self.motor_controller.drive_up(speed)
             elif x < 40:
                 # All down
                 if self.verbose: print("Driving down")
                 speed = ((50 - x)/50) * 100
+                speed = min(speed, MAX_SPEED_2_MOTORS)
                 self.motor_controller.drive_down(speed)
             elif y > 60:
                 # Turn left
                 if self.verbose: print("Turning left")
-                speed = ((50 - y)/50) * 100
-                self.motor_controller.stop_motor(MOTOR1)
-                self.motor_controller.drive_forward(MOTOR3, speed)
+                speed = ((y - 50)/50) * 100
+                speed = min(speed, MAX_SPEED_1_MOTOR)
+                self.motor_controller.drive_reverse(MOTOR1, speed*(2/3))
+                self.motor_controller.drive_reverse(MOTOR3, speed)
             elif y < 40:
                 # Turn right
                 if self.verbose: print("Turning right")
-                speed = ((y - 50)/50) * 100
-                self.motor_controller.drive_forward(MOTOR1, speed)
-                self.motor_controller.stop_motor(MOTOR3)
+                speed = ((50 - y)/50) * 100
+                speed = min(speed, MAX_SPEED_1_MOTOR)
+                self.motor_controller.drive_reverse(MOTOR1, speed)
+                self.motor_controller.drive_reverse(MOTOR3, speed*(2/3))
             else:
                 # At rest
                 self.motor_controller.stop_all_motors()

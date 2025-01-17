@@ -7,7 +7,9 @@ MOTOR1 = 12
 MOTOR2 = 13
 MOTOR3 = 18
 MOTORS = [MOTOR1, MOTOR2, MOTOR3]
-MAX_SPEED = 50
+ABS_MAX_SPEED = 50 # Max possible
+MAX_SPEED_2_MOTORS = 15
+MAX_SPEED_1_MOTOR = 20
 
 class MotorController:
     """
@@ -44,7 +46,8 @@ class MotorController:
         :param speed: value from 0-100
         Positive rotation 7.5%-10% duty cycle, the larger the duty cycle, the faster the positive rotation speed
         """
-        speed = min(speed, MAX_SPEED)
+        speed = abs(speed)
+        speed = min(speed, ABS_MAX_SPEED)
         # Map speed (0-100) to 75-100
         pwm = 75 + (speed / 100) * 25
         self.pi.set_PWM_dutycycle(motor_pin, pwm)
@@ -55,7 +58,8 @@ class MotorController:
         :param speed: value from 0-100
         Reverse The closer the duty cycle is to 5%, the faster the reversal speed is
         """
-        speed = min(speed, MAX_SPEED)
+        speed = abs(speed)
+        speed = min(speed, ABS_MAX_SPEED)
         pwm = 75 - (speed / 100) * 25
         self.pi.set_PWM_dutycycle(motor_pin, pwm)
         if self.verbose: print(f"Reverse: pin={motor_pin}, speed={speed}, pwm={pwm}")
