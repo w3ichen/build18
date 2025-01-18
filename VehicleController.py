@@ -93,6 +93,7 @@ class VehicleController:
                 speed = min(speed, MAX_SPEED_1_MOTOR)
                 self.motor_controller.drive_reverse(MOTOR1, speed*(2/3))
                 self.motor_controller.drive_reverse(MOTOR3, speed)
+                self.motor_controller.drive_forward(MOTOR2, speed)
             elif y < 40:
                 # Turn right
                 if self.verbose: print("Turning right")
@@ -100,6 +101,7 @@ class VehicleController:
                 speed = min(speed, MAX_SPEED_1_MOTOR)
                 self.motor_controller.drive_reverse(MOTOR1, speed)
                 self.motor_controller.drive_reverse(MOTOR3, speed*(2/3))
+                self.motor_controller.drive_forward(MOTOR2, speed)
             else:
                 # At rest
                 if self.verbose: print("At rest")
