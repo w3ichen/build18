@@ -30,7 +30,7 @@ ExecStart=/home/pi/build18/launch.py
 WorkingDirectory=/home/pi/build18
 StandardOutput=inherit
 StandardError=inherit
-Restart=always
+Restart=no
 User=root
 Group=root
 
@@ -46,7 +46,7 @@ sudo systemctl start build18.service
 sudo systemctl status build18.service
 
 # Get logs 
-sudo journalctl -u build18.service -f
+sudo journalctl -u build18.service -f -n 50
 # Restart
 sudo systemctl restart build18.service
 ```
