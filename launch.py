@@ -13,7 +13,7 @@ from VehicleController import VehicleController
 if __name__ == "__main__":
     # Start pigpiod
     print("Starting pigpiod...")
-    subprocess.run(["sudo", "pigpiod"], check=True)
+    subprocess.run(["sudo", "pigpiod"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print("Started pigpiod")
 
     print("Initializing VehicleController...")
