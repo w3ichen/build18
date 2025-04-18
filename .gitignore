@@ -1,2 +1,7 @@
 build18_env/
 __pycache__/
+venv/
+build/
+install/
+dist/
+log/

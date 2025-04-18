@@ -50,3 +50,22 @@ sudo journalctl -u build18.service -f -n 50
 # Restart
 sudo systemctl restart build18.service
 ```
+
+## Connecting to Pi
+- To connect to the pi, run:
+    `ssh pi@172.26.40.246`
+- Make sure venv is activated (if not already): 
+```
+source ~/build18/venv/bin/activate
+```
+- Install python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## ROS2
+- ROS2 pre-compiled for Raspberry PI on Jazzy:
+```bash
+wget https://s3.ap-northeast-1.wasabisys.com/download-raw/dpkg/ros2-desktop/debian/bookworm/ros-jazzy-desktop-0.3.2_20240525_arm64.deb
+sudo apt install ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb
+```

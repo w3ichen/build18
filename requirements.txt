@@ -1,0 +1,17 @@
+# Core libraries
+numpy>=1.22.0
+
+# Hardware interface libraries
+adafruit-circuitpython-bno08x>=1.0.0
+adafruit-circuitpython-ahtx0>=1.0.0
+adafruit-blinka>=8.0.0
+picamera2>=0.3.9
+
+# Image processing
+opencv-python-headless>=4.6.0
+
+# Utilities & extras
+pillow>=9.0.0
+transforms3d>=0.4.0
+
+cython
