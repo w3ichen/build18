@@ -61,6 +61,9 @@ source ~/build18/venv/bin/activate
 - Install python dependencies:
 ```bash
 pip install -r requirements.txt
+# OR
+pip install -r requirements.txt --break-system-packages
+
 ```
 
 ## ROS2
@@ -68,4 +71,28 @@ pip install -r requirements.txt
 ```bash
 wget https://s3.ap-northeast-1.wasabisys.com/download-raw/dpkg/ros2-desktop/debian/bookworm/ros-jazzy-desktop-0.3.2_20240525_arm64.deb
 sudo apt install ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb
+```
+
+## Opening rviz2 on PC
+Set env vars:
+```bash
+export ROS_DOMAIN_ID=42
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LARGE_SUBNET
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+export ROS_NETWORK_INTERFACE=wlan0
+# Set to PI address
+export ROS_MASTER_URI=http://172.26.40.246:11311
+
+# Set the IP address of your PC
+# On linux:
+export ROS_HOSTNAME=$(hostname)
+# On mac:
+export ROS_HOSTNAME=$(ipconfig getifaddr en0)
+
+
+# On mac, get your ip address:
+ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}'
+
+# Start rviz
+ros2 run rviz2 rviz2
 ```

@@ -3,10 +3,8 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu, MagneticField
-from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
-from std_msgs.msg import Header
+from diagnostic_msgs.msg import DiagnosticStatus
 
-import time
 import board
 import busio
 from adafruit_bno08x import (

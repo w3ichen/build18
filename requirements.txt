@@ -5,13 +5,34 @@ numpy>=1.22.0
 adafruit-circuitpython-bno08x>=1.0.0
 adafruit-circuitpython-ahtx0>=1.0.0
 adafruit-blinka>=8.0.0
+adafruit-circuitpython-busdevice>=5.2.3  # Recommended for I2C device support
+board>=0.0.1  # Explicit board library for Raspberry Pi
+gpiozero>=1.6.2  # GPIO control library
+RPi.GPIO>=0.7.1  # Raspberry Pi GPIO interface
+
+# Camera libraries
 picamera2>=0.3.9
+v4l2-python3>=0.3.2  # Video4Linux2 support
 
 # Image processing
 opencv-python-headless>=4.6.0
+
+# Sensor and IMU support
+adafruit-circuitpython-mpu6050>=1.0.0  # Common IMU sensor
+adafruit-circuitpython-lsm6ds>=3.0.0  # Alternative IMU library
 
 # Utilities & extras
 pillow>=9.0.0
 transforms3d>=0.4.0
 
+# I2C and Device Communication
+smbus2>=0.4.2  # I2C communication
+python-periphery>=2.3.0  # Low-level peripheral I/O interface
+
+# Optional but recommended
 cython
+setuptools>=66.0.0  # Ensure latest setuptools
+wheel  # Build wheel packages
+
+# Debug and development
+pytest  # Testing framework
