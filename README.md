@@ -73,6 +73,14 @@ wget https://s3.ap-northeast-1.wasabisys.com/download-raw/dpkg/ros2-desktop/debi
 sudo apt install ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb
 ```
 
+## Opening VNC GUI Display
+0. In VSCode, port forward, 6080
+~~1. Visit vnc://172.26.40.246:5901~~
+1. Visit http://localhost:6080/vnc.html
+2. Enter password: `pipipi`
+3. Click "Connect"
+4. Run `rviz2` in the terminal
+
 ## Opening rviz2 on PC
 Set env vars:
 ```bash
@@ -96,3 +104,6 @@ ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}'
 # Start rviz
 ros2 run rviz2 rviz2
 ```
+
+## I2C
+To check I2C connections: `sudo i2cdetect -y 1`

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import rclpy
+import time
 from rclpy.node import Node
 from sensor_msgs.msg import Imu, MagneticField
-from diagnostic_msgs.msg import DiagnosticStatus
+from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 import board
 import busio
@@ -21,7 +22,7 @@ class BNO085Node(Node):
         
         # Declare parameters
         self.declare_parameter('frame_id', 'imu_frame')
-        self.declare_parameter('i2c_frequency', 800000)  # Recommended to use 800kHz for RPi
+        self.declare_parameter('i2c_frequency', 800000)  # Updated to 800kHz for RPi
         self.declare_parameter('update_rate', 50.0)      # Hz
         
         # Get parameter values
@@ -36,31 +37,7 @@ class BNO085Node(Node):
         
         # Initialize sensor
         self.get_logger().info(f'Initializing BNO085 with I2C frequency {self.i2c_frequency} Hz')
-        try:
-            i2c = busio.I2C(board.SCL, board.SDA, frequency=self.i2c_frequency)
-            self.bno = BNO08X_I2C(i2c)
-            self.get_logger().info('BNO085 sensor initialized')
-        except Exception as e:
-            self.get_logger().error(f'Failed to initialize BNO085 sensor: {str(e)}')
-            # Try a different approach with a timeout setting
-            self.get_logger().info('Trying alternative initialization with timeout')
-            try:
-                i2c = busio.I2C(board.SCL, board.SDA, frequency=self.i2c_frequency, timeout=1000)
-                self.bno = BNO08X_I2C(i2c)
-                self.get_logger().info('BNO085 sensor initialized with timeout setting')
-            except Exception as e:
-                self.get_logger().error(f'Failed alternate initialization: {str(e)}')
-                raise
-        
-        # Enable the desired features
-        self.bno.enable_feature(BNO_REPORT_ACCELEROMETER)
-        self.bno.enable_feature(BNO_REPORT_GYROSCOPE)
-        self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
-        self.bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
-        
-        # Create timer for regular publishing
-        timer_period = 1.0 / self.update_rate
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.initialize_sensor()
         
         # Variables for covariance matrices
         # If covariance is unknown, it should be filled with zeros
@@ -70,7 +47,57 @@ class BNO085Node(Node):
         self.orientation_cov = [0.0] * 9          # Covariance unknown
         self.magnetic_field_cov = [0.0] * 9       # Covariance unknown
         
+        # Create timer for regular publishing
+        timer_period = 1.0 / self.update_rate
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+        
         self.get_logger().info('BNO085 node initialized and running')
+    
+    def initialize_sensor(self):
+        """Initialize the BNO085 sensor with retry logic"""
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                i2c = busio.I2C(board.SCL, board.SDA, frequency=self.i2c_frequency)
+                self.bno = BNO08X_I2C(i2c)
+                
+                # Enable the desired features
+                self.bno.enable_feature(BNO_REPORT_ACCELEROMETER)
+                self.bno.enable_feature(BNO_REPORT_GYROSCOPE)
+                self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
+                self.bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
+                
+                # Short delay after enabling features
+                time.sleep(0.1)
+                
+                self.get_logger().info('BNO085 sensor initialized successfully')
+                return
+            except Exception as e:
+                retry_count += 1
+                self.get_logger().error(f'Failed to initialize BNO085 sensor (attempt {retry_count}): {str(e)}')
+                time.sleep(1.0)  # Wait before retrying
+        
+        # If we've exhausted our retries, try a different approach with a timeout setting
+        self.get_logger().info('Trying alternative initialization with timeout')
+        try:
+            i2c = busio.I2C(board.SCL, board.SDA, frequency=self.i2c_frequency, timeout=1000)
+            self.bno = BNO08X_I2C(i2c)
+            
+            # Enable the desired features
+            self.bno.enable_feature(BNO_REPORT_ACCELEROMETER)
+            self.bno.enable_feature(BNO_REPORT_GYROSCOPE)
+            self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
+            self.bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
+            
+            # Short delay after enabling features
+            time.sleep(0.1)
+            
+            self.get_logger().info('BNO085 sensor initialized with timeout setting')
+        except Exception as e:
+            self.get_logger().error(f'Failed all initialization attempts: {str(e)}')
+            raise
     
     def timer_callback(self):
         """Read data from the sensor and publish ROS2 messages"""
@@ -83,53 +110,69 @@ class BNO085Node(Node):
             imu_msg.header.stamp = now.to_msg()
             imu_msg.header.frame_id = self.frame_id
             
-            # Get quaternion orientation
-            quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
-            imu_msg.orientation.w = quat_real
-            imu_msg.orientation.x = quat_i
-            imu_msg.orientation.y = quat_j
-            imu_msg.orientation.z = quat_k
+            try:
+                # Get quaternion orientation
+                quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
+                imu_msg.orientation.w = quat_real
+                imu_msg.orientation.x = quat_i
+                imu_msg.orientation.y = quat_j
+                imu_msg.orientation.z = quat_k
+                
+                # Set orientation covariance
+                imu_msg.orientation_covariance = self.orientation_cov
+            except Exception as e:
+                self.get_logger().error(f'Error reading quaternion data: {str(e)}')
+                return
             
-            # Set orientation covariance
-            imu_msg.orientation_covariance = self.orientation_cov
+            try:
+                # Get angular velocity in rad/sec
+                gyro_x, gyro_y, gyro_z = self.bno.gyro
+                imu_msg.angular_velocity.x = gyro_x
+                imu_msg.angular_velocity.y = gyro_y
+                imu_msg.angular_velocity.z = gyro_z
+                
+                # Set angular velocity covariance
+                imu_msg.angular_velocity_covariance = self.angular_velocity_cov
+            except Exception as e:
+                self.get_logger().error(f'Error reading gyroscope data: {str(e)}')
+                # Continue execution - we may still have other valid data
             
-            # Get angular velocity in rad/sec
-            gyro_x, gyro_y, gyro_z = self.bno.gyro
-            imu_msg.angular_velocity.x = gyro_x
-            imu_msg.angular_velocity.y = gyro_y
-            imu_msg.angular_velocity.z = gyro_z
-            
-            # Set angular velocity covariance
-            imu_msg.angular_velocity_covariance = self.angular_velocity_cov
-            
-            # Get linear acceleration in m/s^2
-            accel_x, accel_y, accel_z = self.bno.acceleration
-            imu_msg.linear_acceleration.x = accel_x
-            imu_msg.linear_acceleration.y = accel_y
-            imu_msg.linear_acceleration.z = accel_z
-            
-            # Set linear acceleration covariance
-            imu_msg.linear_acceleration_covariance = self.linear_acceleration_cov
+            try:
+                # Get linear acceleration in m/s^2
+                accel_x, accel_y, accel_z = self.bno.acceleration
+                imu_msg.linear_acceleration.x = accel_x
+                imu_msg.linear_acceleration.y = accel_y
+                imu_msg.linear_acceleration.z = accel_z
+                
+                # Set linear acceleration covariance
+                imu_msg.linear_acceleration_covariance = self.linear_acceleration_cov
+            except Exception as e:
+                self.get_logger().error(f'Error reading accelerometer data: {str(e)}')
+                # Continue execution
             
             # Publish IMU message
             self.imu_pub.publish(imu_msg)
             
             # Create Magnetometer message
-            mag_msg = MagneticField()
-            mag_msg.header.stamp = now.to_msg()
-            mag_msg.header.frame_id = self.frame_id
-            
-            # Get magnetic field in Tesla (BNO08x returns in microTesla)
-            mag_x, mag_y, mag_z = self.bno.magnetic
-            mag_msg.magnetic_field.x = mag_x * 1e-6  # Convert from microTesla to Tesla
-            mag_msg.magnetic_field.y = mag_y * 1e-6
-            mag_msg.magnetic_field.z = mag_z * 1e-6
-            
-            # Set magnetic field covariance
-            mag_msg.magnetic_field_covariance = self.magnetic_field_cov
-            
-            # Publish Magnetometer message
-            self.mag_pub.publish(mag_msg)
+            try:
+                mag_msg = MagneticField()
+                mag_msg.header.stamp = now.to_msg()
+                mag_msg.header.frame_id = self.frame_id
+                
+                # Get magnetic field in Tesla (BNO08x returns in microTesla)
+                mag_x, mag_y, mag_z = self.bno.magnetic
+                mag_msg.magnetic_field.x = mag_x * 1e-6  # Convert from microTesla to Tesla
+                mag_msg.magnetic_field.y = mag_y * 1e-6
+                mag_msg.magnetic_field.z = mag_z * 1e-6
+                
+                # Set magnetic field covariance
+                mag_msg.magnetic_field_covariance = self.magnetic_field_cov
+                
+                # Publish Magnetometer message
+                self.mag_pub.publish(mag_msg)
+            except Exception as e:
+                self.get_logger().error(f'Error reading magnetometer data: {str(e)}')
+                # Continue execution
             
             # Create diagnostic status message to help with calibration monitoring
             status_msg = DiagnosticStatus()
@@ -138,11 +181,24 @@ class BNO085Node(Node):
             status_msg.level = DiagnosticStatus.OK
             status_msg.message = "IMU functioning normally"
             
+            # Add key values for diagnostics
+            values = []
+            values.append(KeyValue(key="Update Rate (Hz)", value=f"{self.update_rate}"))
+            
+            status_msg.values = values
+            
             # Publish diagnostic status message
             self.status_pub.publish(status_msg)
             
         except Exception as e:
-            self.get_logger().error(f'Error reading from BNO085: {str(e)}')
+            self.get_logger().error(f'Error in timer callback: {str(e)}')
+            # Check if the sensor needs to be reset
+            if "AttributeError" in str(e) and "'NoneType'" in str(e):
+                self.get_logger().warn("Sensor connection may be lost. Attempting to reinitialize...")
+                try:
+                    self.initialize_sensor()
+                except Exception as reinit_err:
+                    self.get_logger().error(f'Failed to reinitialize sensor: {str(reinit_err)}')
 
 def main(args=None):
     rclpy.init(args=args)

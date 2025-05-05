@@ -7,7 +7,12 @@ ros2 run sensors imu_node
 # Run temperature/humidity node
 ros2 run sensors temp_humidity_node
 
+
+# Launch all sensors
 ros2 launch sensors all_sensors.launch.py
 
 # Build sensors package
 make sensors
+
+# tightvncserver PWD: pipipi
+# SSH PWD: pi
