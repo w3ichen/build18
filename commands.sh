@@ -13,6 +13,3 @@ ros2 launch sensors all_sensors.launch.py
 
 # Build sensors package
 make sensors
-
-# tightvncserver PWD: pipipi
-# SSH PWD: pi

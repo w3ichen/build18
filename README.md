@@ -53,7 +53,7 @@ sudo systemctl restart build18.service
 
 ## Connecting to Pi
 - To connect to the pi, run:
-    `ssh pi@172.26.40.246`
+    `ssh pi@172.26.40.246`. PWD: `pi`
 - Make sure venv is activated (if not already): 
 ```
 source ~/build18/venv/bin/activate
@@ -80,6 +80,30 @@ sudo apt install ./ros-jazzy-desktop-0.3.2_20240525_arm64.deb
 2. Enter password: `pipipi`
 3. Click "Connect"
 4. Run `rviz2` in the terminal
+
+```bash
+# systemctl services
+# Check status
+sudo systemctl status tigervnc.service
+sudo systemctl status novnc.service
+# Restart services
+sudo systemctl daemon-reload
+sudo systemctl restart tigervnc.service
+sudo systemctl restart novnc.service
+# Stop services
+sudo systemctl stop tigervnc.service
+sudo systemctl stop novnc.service
+# Disable services
+sudo systemctl disable tigervnc.service
+sudo systemctl disable novnc.service
+# Check logs
+journalctl -u tigervnc.service
+journalctl -u novnc.service
+
+# Change files
+sudo nano /etc/systemd/system/tigervnc.service
+sudo nano /etc/systemd/system/novnc.service
+```
 
 ## Opening rviz2 on PC
 Set env vars:
